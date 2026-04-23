@@ -1,9 +1,5 @@
 services:
   - type: web
     name: spring-app
-    runtime: java
-    buildCommand: "./gradlew build"
-    startCommand: "java -jar build/libs/app.jar"
-    envVars:
-      - key: JAVA_VERSION
-        value: 21
+    runtime: docker
+    dockerfilePath: ./Dockerfile
