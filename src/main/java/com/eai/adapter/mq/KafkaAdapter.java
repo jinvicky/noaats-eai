@@ -103,6 +103,8 @@ public class KafkaAdapter implements Adapter {
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             props.put(ProducerConfig.ACKS_CONFIG, "1");
             props.put(ProducerConfig.LINGER_MS_CONFIG, "20");
+            props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 4 * 1024 * 1024L); // 4MB (default 32MB)
+            props.put(ProducerConfig.BATCH_SIZE_CONFIG, 4096); // 4KB (default 16KB)
             if (kafkaApiKey != null && !kafkaApiKey.isBlank()) {
                 props.put("security.protocol", "SASL_SSL");
                 props.put("sasl.mechanism", "PLAIN");
