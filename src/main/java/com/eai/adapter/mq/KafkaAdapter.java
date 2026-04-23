@@ -26,11 +26,17 @@ public class KafkaAdapter implements Adapter {
 
     private final ObjectMapper mapper;
     private final String bootstrapServers;
+    private final String kafkaApiKey;
+    private final String kafkaApiSecret;
 
     public KafkaAdapter(ObjectMapper mapper,
-                        @Value("${spring.kafka.bootstrap-servers:localhost:9092}") String bootstrapServers) {
+                        @Value("${spring.kafka.bootstrap-servers:localhost:9092}") String bootstrapServers,
+                        @Value("${KAFKA_API_KEY:}") String kafkaApiKey,
+                        @Value("${KAFKA_API_SECRET:}") String kafkaApiSecret) {
         this.mapper = mapper;
         this.bootstrapServers = bootstrapServers;
+        this.kafkaApiKey = kafkaApiKey;
+        this.kafkaApiSecret = kafkaApiSecret;
     }
 
     @Override public AdapterType type() { return AdapterType.KAFKA; }
@@ -97,6 +103,13 @@ public class KafkaAdapter implements Adapter {
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             props.put(ProducerConfig.ACKS_CONFIG, "1");
             props.put(ProducerConfig.LINGER_MS_CONFIG, "20");
+            if (kafkaApiKey != null && !kafkaApiKey.isBlank()) {
+                props.put("security.protocol", "SASL_SSL");
+                props.put("sasl.mechanism", "PLAIN");
+                props.put("sasl.jaas.config",
+                        "org.apache.kafka.common.security.plain.PlainLoginModule required " +
+                        "username=\"" + kafkaApiKey + "\" password=\"" + kafkaApiSecret + "\";");
+            }
             return new KafkaProducer<>(props);
         }
 
