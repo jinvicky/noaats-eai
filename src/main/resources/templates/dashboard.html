@@ -7,8 +7,8 @@
     <div class="filter-group">
         <label class="filter-label">조회 기간</label>
         <div class="seg">
-            <button type="submit" name="window" th:each="w : ${windowOptions}"
-                    th:value="${w}"
+            <button type="button" th:each="w : ${windowOptions}"
+                    th:data-window="${w}"
                     th:class="${w == window ? 'seg-btn on' : 'seg-btn'}"
                     th:text="${w}">24h</button>
         </div>
@@ -172,11 +172,19 @@
 
 <script>
 (function () {
-  // Auto-submit filter form when any select changes (for better UX)
   const form = document.getElementById('filterForm');
   if (!form) return;
   form.querySelectorAll('select').forEach(sel => {
     sel.addEventListener('change', () => form.submit());
+  });
+  const windowInput = form.querySelector('input[name="window"]');
+  form.querySelectorAll('.seg-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      form.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('on'));
+      this.classList.add('on');
+      if (windowInput) windowInput.value = this.dataset.window;
+      form.submit();
+    });
   });
 })();
 </script>
