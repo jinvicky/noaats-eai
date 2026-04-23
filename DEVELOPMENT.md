@@ -128,6 +128,10 @@ public interface Adapter {
 ```
 `keyField`: 레코드의 해당 필드 값을 메시지 key로 사용 (쓰기 전용)
 
+> **테스트 환경 제약**  
+> 현재 Confluent Cloud에 생성된 토픽은 `eai-test` 하나입니다.  
+> Kafka 어댑터 테스트 시 topic을 `eai-test`로 지정해야 하며, 다른 토픽명 사용 시 `TOPIC_AUTHORIZATION_FAILED` 오류가 발생합니다.
+
 ---
 
 ## 트리거 설정 JSON 예시
