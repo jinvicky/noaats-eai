@@ -75,30 +75,56 @@ public interface Adapter {
 
 ## 어댑터 설정 JSON 예시
 
-**REST**
+**REST (소스 — 외부 사용자 목록 조회)**
 ```json
-{"url": "https://api.example.com/data", "method": "GET", "headers": {}, "timeoutSec": 30}
+{"url": "https://jsonplaceholder.typicode.com/users", "method": "GET", "timeoutSec": 30}
 ```
 
-**JDBC (읽기)**
+**REST (타겟 — 외부 API로 데이터 전송)**
 ```json
-{"url": "jdbc:h2:mem:x", "username": "sa", "password": "", "query": "SELECT id, name FROM customers"}
+{"url": "https://jsonplaceholder.typicode.com/posts", "method": "POST", "timeoutSec": 30}
 ```
 
-**JDBC (쓰기)**
+**JDBC (읽기 — 신규 주문 조회)**
 ```json
-{"url": "jdbc:h2:mem:x", "username": "sa", "password": "", "writeSql": "INSERT INTO log(id, msg) VALUES (?, ?)", "writeParams": ["id", "msg"]}
+{
+  "url": "jdbc:postgresql://db.example.com:5432/shop",
+  "username": "eai_reader",
+  "password": "secret",
+  "query": "SELECT order_id, customer_id, total_amount, status FROM orders WHERE status = 'NEW'"
+}
 ```
 
-**File**
+**JDBC (쓰기 — 연동 이력 적재)**
 ```json
-{"path": "./out/data.json", "format": "json"}
+{
+  "url": "jdbc:postgresql://db.example.com:5432/shop",
+  "username": "eai_writer",
+  "password": "secret",
+  "writeSql": "INSERT INTO sync_log (order_id, synced_at, result) VALUES (?, NOW(), ?)",
+  "writeParams": ["order_id", "result"]
+}
+```
+
+**File (읽기 — CSV 업로드 파일 처리)**
+```json
+{"path": "./in/customers.csv", "format": "csv"}
+```
+
+**File (쓰기 — JSON 리포트 생성)**
+```json
+{"path": "./out/daily-report.json", "format": "json"}
 ```
 `format`: `json` | `csv` | `xml` (생략 시 확장자 자동 감지)
 
-**Kafka**
+**Kafka (타겟 — 주문 이벤트 발행)**
 ```json
-{"topic": "orders", "groupId": "eai-group", "keyField": "id"}
+{"topic": "order-created", "groupId": "eai-group", "keyField": "order_id"}
+```
+
+**Kafka (소스 — 결제 완료 이벤트 수신)**
+```json
+{"topic": "payment-completed", "groupId": "eai-group"}
 ```
 `keyField`: 레코드의 해당 필드 값을 메시지 key로 사용 (쓰기 전용)
 
@@ -107,14 +133,14 @@ public interface Adapter {
 ## 트리거 설정 JSON 예시
 
 ```json
-// MANUAL
+// MANUAL — 즉시 수동 실행
 {"type": "MANUAL"}
 
-// CRON (매 5분)
-{"type": "CRON", "cron": "0 */5 * * * *"}
+// CRON — 매일 오전 9시 정기 배치
+{"type": "CRON", "cron": "0 0 9 * * *"}
 
-// Kafka EVENT
-{"type": "EVENT", "topic": "orders", "groupId": "eai-group"}
+// EVENT — Kafka 결제 완료 이벤트 수신 시 실행
+{"type": "EVENT", "topic": "payment-completed", "groupId": "eai-group"}
 
 // FILE 감지
 {"type": "FILE", "watchPath": "./in"}
