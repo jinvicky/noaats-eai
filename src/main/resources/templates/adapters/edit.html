@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Edit adapter', ~{::body})}">
+<body>
+<h1 th:text="${adapter.id != null} ? 'Edit adapter' : 'New adapter'">Adapter</h1>
+
+<form th:action="@{/adapters/save}" method="post">
+    <input type="hidden" name="id" th:value="${adapter.id}">
+
+    <label>Name <input name="name" th:value="${adapter.name}" required></label>
+    <label>Type
+        <select name="type" id="typeSelect" required>
+            <option th:each="t : ${types}" th:value="${t}" th:text="${t}" th:selected="${t == adapter.type}"></option>
+        </select>
+    </label>
+    <label>Direction
+        <select name="direction" required>
+            <option th:each="d : ${directions}" th:value="${d}" th:text="${d}" th:selected="${d == adapter.direction}"></option>
+        </select>
+    </label>
+    <label>System
+        <select name="systemCode">
+            <option value="">— (unlinked) —</option>
+            <option th:each="s : ${systems}"
+                    th:value="${s.code}"
+                    th:selected="${s.code == adapter.systemCode}"
+                    th:text="|${s.code} — ${s.name}|"></option>
+        </select>
+    </label>
+    <p class="muted" th:if="${#lists.isEmpty(systems)}">등록된 시스템이 없습니다. <a th:href="@{/systems/new}">시스템 등록</a> 후 다시 오면 연결 가능합니다.</p>
+
+    <fieldset>
+        <legend>Config JSON</legend>
+        <p class="muted" id="configHint"></p>
+        <textarea name="configJson" id="configJson" rows="12"
+                  th:text="${adapter.configJson}"></textarea>
+    </fieldset>
+
+    <button class="btn primary">Save</button>
+    <a class="btn" th:href="@{/adapters}">Cancel</a>
+</form>
+
+<script>
+const HINTS = {
+  REST:  '{"url":"https://httpbin.org/json","method":"GET","headers":{},"timeoutSec":30}',
+  JDBC:  '{"url":"jdbc:h2:mem:demo","username":"sa","password":"","query":"SELECT * FROM customers","writeSql":"INSERT INTO log(msg) VALUES (?)","writeParams":["msg"]}',
+  FILE:  '{"path":"./out/data.json","format":"json"}',
+  KAFKA: '{"topic":"orders","groupId":"eai","keyField":"id"}'
+};
+const ta = document.getElementById('configJson');
+const hint = document.getElementById('configHint');
+function apply(type) {
+  hint.textContent = 'Example for ' + type + ':  ' + HINTS[type];
+  if (!ta.value || ta.value.trim() === '' || ta.value.trim() === '{}') {
+    ta.value = HINTS[type] || '{}';
+  }
+}
+document.getElementById('typeSelect').addEventListener('change', e => apply(e.target.value));
+apply(document.getElementById('typeSelect').value);
+</script>
+</body>
+</html>

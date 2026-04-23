@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Dashboard', ~{::body})}">
+<body>
+<h1>Dashboard <span class="muted" style="font-weight:400;font-size:14px" th:text="|· ${windowLabel}|">· last 24h</span></h1>
+
+<form method="get" action="/" class="filter-bar" id="filterForm">
+    <div class="filter-group">
+        <label class="filter-label">조회 기간</label>
+        <div class="seg">
+            <button type="submit" name="window" th:each="w : ${windowOptions}"
+                    th:value="${w}"
+                    th:class="${w == window ? 'seg-btn on' : 'seg-btn'}"
+                    th:text="${w}">24h</button>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="fStatus">상태</label>
+        <select id="fStatus" name="status">
+            <option value="">All</option>
+            <option th:each="s : ${statusOptions}"
+                    th:value="${s}"
+                    th:text="${s}"
+                    th:selected="${s.name() == selStatus}"></option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="fTrigger">트리거</label>
+        <select id="fTrigger" name="triggerType">
+            <option value="">All</option>
+            <option th:each="t : ${triggerOptions}"
+                    th:value="${t}"
+                    th:text="${t}"
+                    th:selected="${t.name() == selTriggerType}"></option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="fSystem">시스템</label>
+        <select id="fSystem" name="systemCode">
+            <option value="">All</option>
+            <option th:each="s : ${systemsList}"
+                    th:value="${s.code}"
+                    th:text="|${s.code} — ${s.name}|"
+                    th:selected="${s.code == selSystemCode}"></option>
+        </select>
+    </div>
+
+    <div class="filter-group filter-wide">
+        <label class="filter-label" for="fInterface">인터페이스</label>
+        <select id="fInterface" name="interfaceId">
+            <option value="">All</option>
+            <option th:each="i : ${interfacesList}"
+                    th:value="${i.id}"
+                    th:text="${i.name}"
+                    th:selected="${i.id == selInterfaceId}"></option>
+        </select>
+    </div>
+
+    <!-- preserve window across non-quick submits -->
+    <input type="hidden" name="window" th:value="${window}">
+
+    <div class="filter-actions">
+        <button type="submit" class="btn primary">Apply</button>
+        <a class="btn" th:href="@{/}">Reset</a>
+    </div>
+</form>
+
+<div class="cards">
+    <div class="card"><div class="k">Systems</div><div class="v" th:text="${systemCount}">0</div></div>
+    <div class="card"><div class="k">Adapters</div><div class="v" th:text="${adapterCount}">0</div></div>
+    <div class="card"><div class="k">Interfaces</div><div class="v" th:text="${interfaceCount}">0</div></div>
+    <div class="card"><div class="k" th:text="|Runs · ${windowLabel}|">Runs</div><div class="v" th:text="${last24}">0</div></div>
+    <div class="card ok"><div class="k">Success</div><div class="v" th:text="${success24}">0</div></div>
+    <div class="card err"><div class="k">Failed</div><div class="v" th:text="${failed24}">0</div></div>
+</div>
+
+<section class="chart-section">
+    <div class="chart-header">
+        <h2 th:text="|Data throughput · ${windowLabel}|">Data throughput</h2>
+        <div class="chart-legend">
+            <span class="legend-dot read"></span> Read (rows in) <strong th:text="${totalRead}">0</strong>
+            <span class="legend-dot written"></span> Written (rows out) <strong th:text="${totalWritten}">0</strong>
+        </div>
+    </div>
+    <div class="chart-wrap">
+        <svg class="throughput-chart" viewBox="0 0 840 240" preserveAspectRatio="none" aria-label="Throughput chart">
+            <g class="gridlines">
+                <line x1="40" x2="820" y1="40"  y2="40"  class="grid"></line>
+                <line x1="40" x2="820" y1="95"  y2="95"  class="grid"></line>
+                <line x1="40" x2="820" y1="150" y2="150" class="grid"></line>
+                <line x1="40" x2="820" y1="205" y2="205" class="grid"></line>
+            </g>
+            <text x="36" y="44"  class="axis" text-anchor="end" th:text="${yMax}">0</text>
+            <text x="36" y="99"  class="axis" text-anchor="end" th:text="${yMax * 2 / 3}">0</text>
+            <text x="36" y="154" class="axis" text-anchor="end" th:text="${yMax / 3}">0</text>
+            <text x="36" y="209" class="axis" text-anchor="end">0</text>
+
+            <g th:each="b, it : ${buckets}"
+               th:with="slot=${780.0 / #lists.size(buckets)},
+                        bx=${40 + it.index * slot + 2},
+                        bw=${slot / 2 - 1},
+                        readH=${b.read == 0 ? 0 : (b.read * 165 / yMax)},
+                        wrH=${b.written == 0 ? 0 : (b.written * 165 / yMax)},
+                        step=${T(java.lang.Math).max(1, #lists.size(buckets) / 8)}">
+                <rect class="bar read"
+                      th:x="${bx}" th:y="${205 - readH}" th:width="${bw}" th:height="${readH}">
+                    <title th:text="|${b.label}  read ${b.read} · written ${b.written} · ${b.runs} runs|">—</title>
+                </rect>
+                <rect class="bar written"
+                      th:x="${bx + bw + 1}" th:y="${205 - wrH}" th:width="${bw}" th:height="${wrH}">
+                    <title th:text="|${b.label}  read ${b.read} · written ${b.written} · ${b.runs} runs|">—</title>
+                </rect>
+                <text th:if="${it.index % step == 0}"
+                      class="axis hour"
+                      th:x="${bx + slot / 2}" y="225" text-anchor="middle" th:text="${b.label}">—</text>
+            </g>
+
+            <line x1="40" x2="820" y1="205" y2="205" class="axis-line"></line>
+        </svg>
+    </div>
+</section>
+
+<h2>Recent runs
+    <span class="muted" style="font-weight:400;font-size:13px"
+          th:if="${totalRecent > 0}"
+          th:text="|(${pageFrom}-${pageTo} / ${totalRecent} matching filters)|">—</span>
+    <span class="muted" style="font-weight:400;font-size:13px"
+          th:if="${totalRecent == 0}">(0 matches)</span>
+</h2>
+<table>
+    <thead><tr><th>Started</th><th>Interface</th><th>Trigger</th><th>Status</th><th>Read/Write</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="r : ${recent}">
+        <td class="ts" th:text="${r.startedAt}">—</td>
+        <td th:text="${interfaceNames[r.interfaceId] ?: r.interfaceId}">—</td>
+        <td th:text="${r.triggerType}">—</td>
+        <td><span th:class="'status ' + ${#strings.toLowerCase(r.status)}" th:text="${r.status}">—</span></td>
+        <td th:text="|${r.recordsRead} / ${r.recordsWritten}|">0 / 0</td>
+        <td><a th:href="@{|/runs/${r.id}|}">open</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(recent)}"><td colspan="6" class="muted">조건에 맞는 실행 이력이 없습니다.</td></tr>
+    </tbody>
+</table>
+
+<nav class="pager" th:if="${totalPages > 1}">
+    <a class="pager-btn"
+       th:classappend="${currentPage == 0} ? ' disabled' : ''"
+       th:href="${currentPage == 0} ? '#' : @{/(window=${window},status=${selStatus},triggerType=${selTriggerType},interfaceId=${selInterfaceId},systemCode=${selSystemCode},page=${currentPage - 1})}">‹ Prev</a>
+
+    <a th:if="${pageNumbers[0] > 0}" class="pager-btn"
+       th:href="@{/(window=${window},status=${selStatus},triggerType=${selTriggerType},interfaceId=${selInterfaceId},systemCode=${selSystemCode},page=0)}">1</a>
+    <span th:if="${pageNumbers[0] > 1}" class="pager-ellipsis">…</span>
+
+    <a th:each="p : ${pageNumbers}"
+       th:class="${p == currentPage} ? 'pager-btn on' : 'pager-btn'"
+       th:href="@{/(window=${window},status=${selStatus},triggerType=${selTriggerType},interfaceId=${selInterfaceId},systemCode=${selSystemCode},page=${p})}"
+       th:text="${p + 1}">1</a>
+
+    <span th:if="${pageNumbers[pageNumbers.size() - 1] < totalPages - 2}" class="pager-ellipsis">…</span>
+    <a th:if="${pageNumbers[pageNumbers.size() - 1] < totalPages - 1}" class="pager-btn"
+       th:href="@{/(window=${window},status=${selStatus},triggerType=${selTriggerType},interfaceId=${selInterfaceId},systemCode=${selSystemCode},page=${totalPages - 1})}"
+       th:text="${totalPages}">N</a>
+
+    <a class="pager-btn"
+       th:classappend="${currentPage == totalPages - 1} ? ' disabled' : ''"
+       th:href="${currentPage == totalPages - 1} ? '#' : @{/(window=${window},status=${selStatus},triggerType=${selTriggerType},interfaceId=${selInterfaceId},systemCode=${selSystemCode},page=${currentPage + 1})}">Next ›</a>
+
+    <span class="pager-info muted" th:text="|Page ${currentPage + 1} of ${totalPages}|">—</span>
+</nav>
+
+<script>
+(function () {
+  // Auto-submit filter form when any select changes (for better UX)
+  const form = document.getElementById('filterForm');
+  if (!form) return;
+  form.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', () => form.submit());
+  });
+})();
+</script>
+</body>
+</html>

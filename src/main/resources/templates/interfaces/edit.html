@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Edit interface', ~{::body})}">
+<body>
+<h1 th:text="${iface.id != null} ? 'Edit interface' : 'New interface'">Interface</h1>
+
+<form th:action="@{/interfaces/save}" method="post" id="ifaceForm">
+    <input type="hidden" name="id" th:value="${iface.id}">
+
+    <label>Name <input name="name" th:value="${iface.name}" required></label>
+    <label>Description <input name="description" th:value="${iface.description}"></label>
+    <label class="inline">
+        <input type="checkbox" name="active" value="true" th:checked="${iface.active}"> Active
+    </label>
+
+    <fieldset>
+        <legend>Source endpoint</legend>
+        <label>Source system
+            <select id="srcSystemSelect">
+                <option value="">— any system —</option>
+                <option th:each="s : ${systems}"
+                        th:value="${s.code}"
+                        th:selected="${s.code == sourceSystemCode}"
+                        th:text="|${s.code} — ${s.name}|"></option>
+            </select>
+        </label>
+        <label>Source adapter
+            <select name="sourceAdapterId" id="srcSelect" required>
+                <option value="">— select adapter —</option>
+                <option th:each="a : ${adapters}"
+                        th:if="${a.direction.name() != 'TARGET'}"
+                        th:value="${a.id}"
+                        th:selected="${a.id == version.sourceAdapterId}"
+                        th:text="|${a.name} (${a.type}${a.systemCode != null ? ' · ' + a.systemCode : ''})|"
+                        th:attr="data-system=${a.systemCode ?: ''},data-type=${a.type}"></option>
+            </select>
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Target endpoint</legend>
+        <label>Target system
+            <select id="tgtSystemSelect">
+                <option value="">— any system —</option>
+                <option th:each="s : ${systems}"
+                        th:value="${s.code}"
+                        th:selected="${s.code == targetSystemCode}"
+                        th:text="|${s.code} — ${s.name}|"></option>
+            </select>
+        </label>
+        <label>Target adapter
+            <select name="targetAdapterId" id="tgtSelect" required>
+                <option value="">— select adapter —</option>
+                <option th:each="a : ${adapters}"
+                        th:if="${a.direction.name() != 'SOURCE'}"
+                        th:value="${a.id}"
+                        th:selected="${a.id == version.targetAdapterId}"
+                        th:text="|${a.name} (${a.type}${a.systemCode != null ? ' · ' + a.systemCode : ''})|"
+                        th:attr="data-system=${a.systemCode ?: ''},data-type=${a.type}"></option>
+            </select>
+        </label>
+    </fieldset>
+
+    <p class="muted" th:if="${#lists.isEmpty(systems)}">
+        시스템을 먼저 등록하면 여기서 바로 선택할 수 있습니다. <a th:href="@{/systems/new}">시스템 등록</a>
+    </p>
+
+    <fieldset>
+        <legend>Trigger (JSON)</legend>
+        <p class="muted">Examples:
+            <code>{"type":"MANUAL"}</code>,
+            <code>{"type":"CRON","cron":"0 */1 * * * *"}</code>,
+            <code>{"type":"EVENT","topic":"orders","groupId":"eai"}</code>,
+            <code>{"type":"FILE","watchPath":"./in"}</code>
+        </p>
+        <textarea name="triggerConfigJson" rows="3" th:text="${version.triggerConfigJson}"></textarea>
+    </fieldset>
+
+    <fieldset>
+        <legend>Field mapping</legend>
+        <div id="mappingCanvas"></div>
+        <details>
+            <summary>Raw mapping rules JSON</summary>
+            <textarea name="mappingRulesJson" id="mappingRulesJson" rows="10"
+                      th:text="${version.mappingRulesJson}"></textarea>
+        </details>
+        <p class="muted">Transforms: identity, uppercase, lowercase, trim, toNumber, toString,
+            concat, substring, dateFormat, constant, default.</p>
+    </fieldset>
+
+    <button class="btn primary">Save</button>
+    <a class="btn" th:href="@{/interfaces}">Cancel</a>
+    <form th:if="${iface.id != null}" th:action="@{|/interfaces/${iface.id}/run|}" method="post" style="display:inline">
+        <button class="btn">Run now</button>
+    </form>
+</form>
+
+<script th:src="@{/js/mapping-canvas.js}"></script>
+<script>
+(function () {
+  function wireSystemFilter(sysId, adapterId) {
+    const sysSel = document.getElementById(sysId);
+    const adpSel = document.getElementById(adapterId);
+    if (!sysSel || !adpSel) return;
+
+    // Remember full option list (including placeholder)
+    const allOptions = Array.from(adpSel.options).map(o => ({
+      value: o.value,
+      text: o.text,
+      system: o.getAttribute('data-system') || '',
+      type: o.getAttribute('data-type') || '',
+      selected: o.selected
+    }));
+
+    function refresh() {
+      const wanted = sysSel.value;
+      const prev = adpSel.value;
+      adpSel.innerHTML = '';
+      allOptions.forEach(opt => {
+        // Keep the placeholder (empty value) always
+        if (opt.value === '' || !wanted || opt.system === wanted) {
+          const el = document.createElement('option');
+          el.value = opt.value;
+          el.text = opt.text;
+          if (opt.system) el.setAttribute('data-system', opt.system);
+          if (opt.type) el.setAttribute('data-type', opt.type);
+          if (opt.value === prev) el.selected = true;
+          adpSel.appendChild(el);
+        }
+      });
+      // If the prior selection got filtered out, reset to placeholder
+      if (adpSel.value !== prev) adpSel.selectedIndex = 0;
+    }
+
+    sysSel.addEventListener('change', refresh);
+    // Initial filter respects the pre-selected system on edit
+    refresh();
+  }
+
+  wireSystemFilter('srcSystemSelect', 'srcSelect');
+  wireSystemFilter('tgtSystemSelect', 'tgtSelect');
+})();
+</script>
+</body>
+</html>

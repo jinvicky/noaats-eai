@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Edit system', ~{::body})}">
+<body>
+<h1 th:text="${system.id != null} ? 'Edit system' : 'Register system'">System</h1>
+
+<form th:action="@{/systems/save}" method="post">
+    <input type="hidden" name="id" th:value="${system.id}">
+
+    <fieldset>
+        <legend>기본 정보</legend>
+        <label>Code *
+            <input name="code" th:value="${system.code}" required
+                   pattern="[A-Za-z0-9_-]+" maxlength="40"
+                   placeholder="예) CRM, ERP_FI, ORDER_DB">
+        </label>
+        <p class="muted">어댑터 등록 시 이 코드로 시스템을 연결합니다. 영문/숫자/-/_. 중복 불가.</p>
+
+        <label>Name *
+            <input name="name" th:value="${system.name}" required
+                   placeholder="예) CRM 고객관리 시스템">
+        </label>
+
+        <label>Type *
+            <select name="type" required>
+                <option th:each="t : ${types}"
+                        th:value="${t}" th:text="${t}"
+                        th:selected="${t == system.type}"></option>
+            </select>
+        </label>
+
+        <label>Category
+            <input name="category" th:value="${system.category}"
+                   list="categoryHints" maxlength="60"
+                   placeholder="예) REST API, RDBMS, SAP, Legacy Mainframe">
+            <datalist id="categoryHints">
+                <option value="REST API"></option>
+                <option value="SOAP/XML"></option>
+                <option value="RDBMS"></option>
+                <option value="NoSQL"></option>
+                <option value="Message Queue"></option>
+                <option value="File/SFTP"></option>
+                <option value="SAP"></option>
+                <option value="Salesforce"></option>
+                <option value="Legacy Mainframe"></option>
+                <option value="IoT"></option>
+            </datalist>
+        </label>
+
+        <label class="inline">
+            <input type="checkbox" name="active" value="true" th:checked="${system.active}"> Active
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>소유 / 연락처</legend>
+        <label>Owner team
+            <input name="owner" th:value="${system.owner}"
+                   placeholder="예) 고객정보팀, Platform Team">
+        </label>
+        <label>Contact
+            <input name="contact" th:value="${system.contact}"
+                   placeholder="예) crm-owner@company.com, Slack #crm-ops">
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>접속 정보</legend>
+        <label>Base URL / Endpoint
+            <input name="baseUrl" th:value="${system.baseUrl}"
+                   placeholder="예) https://crm.internal, jdbc:postgresql://db:5432/crm">
+        </label>
+        <label>Description
+            <textarea name="description" rows="4"
+                      th:text="${system.description}"
+                      placeholder="시스템 개요, 연동 범위, 주의사항 등"></textarea>
+        </label>
+    </fieldset>
+
+    <button class="btn primary">Save</button>
+    <a class="btn" th:href="@{/systems}">Cancel</a>
+</form>
+
+<section th:if="${linkedAdapters != null and !#lists.isEmpty(linkedAdapters)}">
+    <h2>Linked adapters</h2>
+    <p class="muted">이 시스템 코드로 연결된 어댑터 목록.</p>
+    <table>
+        <thead><tr><th>Name</th><th>Type</th><th>Direction</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="a : ${linkedAdapters}">
+            <td><a th:href="@{|/adapters/${a.id}/edit|}" th:text="${a.name}">—</a></td>
+            <td th:text="${a.type}">—</td>
+            <td th:text="${a.direction}">—</td>
+            <td th:text="${a.updatedAt}">—</td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

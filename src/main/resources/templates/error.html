@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Error', ~{::body})}">
+<body>
+<h1>Something went wrong</h1>
+<p class="muted">Status: <span th:text="${status}">—</span></p>
+<p th:text="${error}">Error.</p>
+<pre th:if="${message}" th:text="${message}"></pre>
+<p><a th:href="@{/}">← back to dashboard</a></p>
+</body>
+</html>

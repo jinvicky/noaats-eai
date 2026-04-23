@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Adapters', ~{::body})}">
+<body>
+<h1>Adapters <a class="btn" th:href="@{/adapters/new}">+ New</a></h1>
+<table>
+    <thead><tr><th>Name</th><th>Type</th><th>Direction</th><th>System</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="a : ${adapters}">
+        <td><a th:href="@{|/adapters/${a.id}/edit|}" th:text="${a.name}">—</a></td>
+        <td th:text="${a.type}">—</td>
+        <td th:text="${a.direction}">—</td>
+        <td><code th:text="${a.systemCode}" th:if="${a.systemCode}">—</code>
+            <span th:unless="${a.systemCode}" class="muted">—</span></td>
+        <td class="ts" th:text="${a.updatedAt}">—</td>
+        <td>
+            <form th:action="@{|/adapters/${a.id}/delete|}" method="post" style="display:inline"
+                  onsubmit="return confirm('Delete adapter?')">
+                <button class="btn danger">Delete</button>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(adapters)}"><td colspan="6" class="muted">No adapters yet. <span th:if="${#lists.isEmpty(systems)}">먼저 <a th:href="@{/systems/new}">시스템을 등록</a>하면 어댑터 생성 시 연결할 수 있습니다.</span></td></tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, body)">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|${title} · EAI|">EAI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <a th:href="@{/}">EAI<span class="brand-sub">integration platform</span></a>
+        </div>
+
+        <nav class="side-nav">
+            <div class="side-section">
+                <div class="side-section-title">Overview</div>
+                <ul>
+                    <li><a th:href="@{/}">
+                        <span class="ico">◎</span> Dashboard</a></li>
+                </ul>
+            </div>
+
+            <div class="side-section">
+                <div class="side-section-title">Integration</div>
+                <ul>
+                    <li><a th:href="@{/systems}"><span class="ico">◇</span> Systems</a></li>
+                    <li><a th:href="@{/adapters}"><span class="ico">◈</span> Adapters</a></li>
+                    <li><a th:href="@{/interfaces}"><span class="ico">⇌</span> Interfaces</a></li>
+                </ul>
+            </div>
+
+            <div class="side-section">
+                <div class="side-section-title">Monitoring</div>
+                <ul>
+                    <li><a th:href="@{/runs}"><span class="ico">▶</span> Runs</a></li>
+                </ul>
+            </div>
+
+            <div class="side-section">
+                <div class="side-section-title">Admin</div>
+                <ul>
+                    <li><a th:href="@{/users}"><span class="ico">👤</span> Users</a></li>
+                    <li><a th:href="@{/settings}"><span class="ico">⚙</span> Settings</a></li>
+                </ul>
+            </div>
+
+            <div class="side-section">
+                <div class="side-section-title">Tools</div>
+                <ul>
+                    <li><a th:href="@{/h2-console}" target="_blank"><span class="ico">⛁</span> H2 Console</a></li>
+                    <li><a th:href="@{/actuator/health}" target="_blank"><span class="ico">♥</span> Health</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="side-foot muted">© EAI · v0.1</div>
+    </aside>
+
+    <main class="content">
+        <div th:if="${msg}" class="flash" th:text="${msg}"></div>
+        <div th:replace="${body}"></div>
+    </main>
+</div>
+
+<script>
+(function () {
+  // Mark active sidebar link based on current path
+  const path = location.pathname;
+  document.querySelectorAll('.side-nav a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    if (href === '/' ? path === '/' : path === href || path.startsWith(href + '/')) {
+      a.classList.add('active');
+    }
+  });
+})();
+</script>
+</body>
+</html>

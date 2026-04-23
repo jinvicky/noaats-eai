@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Users', ~{::body})}">
+<body>
+<h1>Users <a class="btn" th:href="@{/users/new}">+ Register user</a></h1>
+<p class="muted">플랫폼 운영자·오퍼레이터·뷰어 계정 등록. 인증 연동은 Phase 2 예정.</p>
+
+<div class="cards" style="max-width:520px">
+    <div class="card"><div class="k">Total users</div><div class="v" th:text="${#lists.size(users)}">0</div></div>
+    <div class="card ok"><div class="k">Active</div><div class="v" th:text="${activeCount}">0</div></div>
+</div>
+
+<table>
+    <thead><tr>
+        <th>Username</th><th>Name</th><th>Email</th><th>Role</th>
+        <th>Team</th><th>Active</th><th>Last login</th><th></th>
+    </tr></thead>
+    <tbody>
+    <tr th:each="u : ${users}">
+        <td><code th:text="${u.username}">—</code></td>
+        <td><a th:href="@{|/users/${u.id}/edit|}" th:text="${u.fullName}">—</a></td>
+        <td th:text="${u.email}">—</td>
+        <td><span th:class="'role-badge role-' + ${#strings.toLowerCase(u.role)}" th:text="${u.role}">—</span></td>
+        <td th:text="${u.team}">—</td>
+        <td th:text="${u.active ? 'Yes' : 'No'}">Yes</td>
+        <td class="ts" th:text="${u.lastLoginAt ?: '—'}">—</td>
+        <td>
+            <form th:action="@{|/users/${u.id}/delete|}" method="post" style="display:inline"
+                  onsubmit="return confirm('Delete user ' + this.dataset.u + '?')"
+                  th:data-u="${u.username}">
+                <button class="btn danger">Delete</button>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(users)}"><td colspan="8" class="muted">등록된 사용자가 없습니다.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Settings', ~{::body})}">
+<body>
+<h1>Settings</h1>
+<p class="muted">
+    플랫폼 전역 설정. 변경 사항은 즉시 적용되며 마지막 수정 시각이 기록됩니다.
+    <span th:if="${settings.updatedAt}" th:text="|마지막 수정: ${settings.updatedAt}|">—</span>
+</p>
+
+<form th:action="@{/settings/save}" method="post" class="settings-form">
+    <fieldset>
+        <legend>일반</legend>
+        <label>Platform name
+            <input name="platformName" th:value="${settings.platformName}" required maxlength="100">
+        </label>
+        <label>Timezone
+            <input name="timezone" th:value="${settings.timezone}" list="tzList" required>
+            <datalist id="tzList">
+                <option th:each="tz : ${timezones}" th:value="${tz}"></option>
+            </datalist>
+        </label>
+        <p class="muted">Cron 표현식 · 스케줄 · 로그 시각 표시에 사용.</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>실행 기본값</legend>
+        <label>Default error policy
+            <select name="defaultErrorPolicy" required>
+                <option th:each="p : ${errorPolicies}"
+                        th:value="${p}" th:text="${p}"
+                        th:selected="${p == settings.defaultErrorPolicy}"></option>
+            </select>
+        </label>
+        <p class="muted">
+            <strong>FAIL_FAST</strong> — 첫 에러에서 중단 ·
+            <strong>CONTINUE_ON_ERROR</strong> — 실패 레코드 건너뛰고 나머지 처리
+        </p>
+
+        <label>Default page size
+            <input type="number" name="defaultPageSize" th:value="${settings.defaultPageSize}"
+                   min="1" max="100" required>
+        </label>
+        <p class="muted">대시보드 · Runs 등 목록 기본 페이지 크기 (1–100).</p>
+
+        <label>Log retention (days)
+            <input type="number" name="logRetentionDays" th:value="${settings.logRetentionDays}"
+                   min="1" required>
+        </label>
+        <p class="muted">이 기간 이전의 execution_log 는 배치로 정리됩니다.</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>알림</legend>
+        <label class="inline">
+            <input type="checkbox" name="notifyOnFailure" value="true"
+                   th:checked="${settings.notifyOnFailure}">
+            Notify on run failure
+        </label>
+        <label>Notification email
+            <input type="email" name="notifyEmail" th:value="${settings.notifyEmail}"
+                   placeholder="예) eai-alerts@company.com">
+        </label>
+        <label>Slack webhook URL
+            <input name="slackWebhook" th:value="${settings.slackWebhook}"
+                   placeholder="예) https://hooks.slack.com/services/...">
+        </label>
+        <p class="muted">알림 라우팅은 Phase 2 구현 예정. 값만 저장.</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>유지보수</legend>
+        <label class="inline">
+            <input type="checkbox" name="maintenanceMode" value="true"
+                   th:checked="${settings.maintenanceMode}">
+            Maintenance mode
+        </label>
+        <p class="muted">활성화 시 새 실행을 거부하고 배너를 표시합니다. (UI 배너 연동 예정)</p>
+
+        <label>Maintenance message
+            <textarea name="maintenanceMessage" rows="2"
+                      th:text="${settings.maintenanceMessage}"
+                      placeholder="점검 중입니다 (예정: 2026-04-23 02:00 ~ 04:00)"></textarea>
+        </label>
+    </fieldset>
+
+    <button class="btn primary">Save</button>
+    <a class="btn" th:href="@{/}">Cancel</a>
+</form>
+</body>
+</html>

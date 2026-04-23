@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Edit user', ~{::body})}">
+<body>
+<h1 th:text="${user.id != null} ? 'Edit user' : 'Register user'">User</h1>
+
+<form th:action="@{/users/save}" method="post">
+    <input type="hidden" name="id" th:value="${user.id}">
+
+    <fieldset>
+        <legend>계정</legend>
+        <label>Username *
+            <input name="username" th:value="${user.username}" required
+                   pattern="[A-Za-z0-9._-]+" maxlength="60"
+                   placeholder="예) alice, seong.namkung">
+        </label>
+        <p class="muted">영문/숫자/./-/_. 중복 불가.</p>
+
+        <label>Role *
+            <select name="role" required>
+                <option th:each="r : ${roles}"
+                        th:value="${r}" th:text="${r}"
+                        th:selected="${r == user.role}"></option>
+            </select>
+        </label>
+        <p class="muted">
+            <strong>ADMIN</strong> — 전체 관리 권한 ·
+            <strong>OPERATOR</strong> — 인터페이스 실행·편집 ·
+            <strong>VIEWER</strong> — 조회만
+        </p>
+
+        <label class="inline">
+            <input type="checkbox" name="active" value="true" th:checked="${user.active}"> Active
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>프로필</legend>
+        <label>Full name
+            <input name="fullName" th:value="${user.fullName}"
+                   placeholder="예) Alice Kim">
+        </label>
+        <label>Email
+            <input type="email" name="email" th:value="${user.email}"
+                   placeholder="예) alice@example.com">
+        </label>
+        <label>Team
+            <input name="team" th:value="${user.team}"
+                   placeholder="예) Platform Team, 고객정보팀">
+        </label>
+        <label>Description
+            <textarea name="description" rows="3" th:text="${user.description}"
+                      placeholder="역할/책임에 대한 설명"></textarea>
+        </label>
+    </fieldset>
+
+    <button class="btn primary">Save</button>
+    <a class="btn" th:href="@{/users}">Cancel</a>
+</form>
+</body>
+</html>

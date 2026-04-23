@@ -1,0 +1,34 @@
+# Build output
+build/
+.gradle/
+out/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime state (H2 db, execution outputs, file-drop watched dir)
+data/
+in/
+
+# Session transcripts / exports (may contain tool call history)
+session-export/transcript.jsonl
+conversation-*.txt
+
+# Claude Code local state
+.claude/
+
+# Log files
+*.log
+
+# Temporary
+*.swp
+*~

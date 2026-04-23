@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Interfaces', ~{::body})}">
+<body>
+<h1>Interfaces <a class="btn" th:href="@{/interfaces/new}">+ New</a></h1>
+<p th:if="${#lists.isEmpty(interfaces)}" class="muted">
+    No interfaces yet.
+    <span th:if="${#lists.isEmpty(adapters)}">
+        First, create <a th:href="@{/adapters/new}">an adapter</a> (source & target).
+    </span>
+</p>
+<table th:if="${!#lists.isEmpty(interfaces)}">
+    <thead><tr><th>Name</th><th>Source</th><th>Target</th><th>Active</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="i : ${interfaces}">
+        <td><a th:href="@{|/interfaces/${i.id}/edit|}" th:text="${i.name}">—</a>
+            <div class="muted" th:text="${i.description}">—</div>
+        </td>
+        <td><code th:text="${endpointSummary[i.id] != null ? endpointSummary[i.id][0] : '—'}">—</code></td>
+        <td><code th:text="${endpointSummary[i.id] != null ? endpointSummary[i.id][1] : '—'}">—</code></td>
+        <td th:text="${i.active ? 'Yes' : 'No'}">—</td>
+        <td class="ts" th:text="${i.updatedAt}">—</td>
+        <td>
+            <form th:action="@{|/interfaces/${i.id}/run|}" method="post" style="display:inline">
+                <button class="btn">Run now</button>
+            </form>
+            <form th:action="@{|/interfaces/${i.id}/delete|}" method="post" style="display:inline"
+                  onsubmit="return confirm('Delete interface?')">
+                <button class="btn danger">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

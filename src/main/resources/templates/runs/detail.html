@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Run detail', ~{::body})}">
+<body>
+<h1>Run detail</h1>
+<a th:href="@{/runs}">← back</a>
+
+<section class="run-meta">
+    <div><strong>Interface:</strong> <span th:text="${interfaceName}">—</span></div>
+    <div><strong>Status:</strong> <span th:class="'status ' + ${#strings.toLowerCase(run.status)}" th:text="${run.status}">—</span></div>
+    <div><strong>Trigger:</strong> <span th:text="${run.triggerType}">—</span></div>
+    <div><strong>Started:</strong> <span th:text="${run.startedAt}">—</span></div>
+    <div><strong>Ended:</strong> <span th:text="${run.endedAt}">—</span></div>
+    <div><strong>Records:</strong>
+        read <span th:text="${run.recordsRead}">0</span>,
+        written <span th:text="${run.recordsWritten}">0</span></div>
+    <div th:if="${run.errorSummary}"><strong>Error:</strong> <code th:text="${run.errorSummary}">—</code></div>
+    <div th:if="${run.triggerMeta}"><strong>Trigger meta:</strong> <code th:text="${run.triggerMeta}">—</code></div>
+</section>
+
+<h2>Logs</h2>
+<table>
+    <thead><tr><th>#</th><th>Time</th><th>Phase</th><th>Level</th><th>Message</th></tr></thead>
+    <tbody>
+    <tr th:each="l : ${logs}" th:class="'log-' + ${#strings.toLowerCase(l.level)}">
+        <td th:text="${l.seq}">—</td>
+        <td th:text="${l.ts}">—</td>
+        <td th:text="${l.phase}">—</td>
+        <td th:text="${l.level}">—</td>
+        <td th:text="${l.message}">—</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(logs)}"><td colspan="5" class="muted">No log entries.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

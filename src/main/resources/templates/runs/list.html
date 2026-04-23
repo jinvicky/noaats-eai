@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Runs', ~{::body})}">
+<body>
+<h1>Execution history</h1>
+<table>
+    <thead><tr><th>Started</th><th>Interface</th><th>Trigger</th><th>Status</th><th>Read/Write</th><th>Ended</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="r : ${runs}">
+        <td class="ts" th:text="${r.startedAt}">—</td>
+        <td th:text="${interfaces[r.interfaceId] ?: r.interfaceId}">—</td>
+        <td th:text="${r.triggerType}">—</td>
+        <td><span th:class="'status ' + ${#strings.toLowerCase(r.status)}" th:text="${r.status}">—</span></td>
+        <td th:text="|${r.recordsRead} / ${r.recordsWritten}|">0 / 0</td>
+        <td class="ts" th:text="${r.endedAt != null ? r.endedAt : '—'}">—</td>
+        <td><a th:href="@{|/runs/${r.id}|}">open</a></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(runs)}"><td colspan="7" class="muted">No runs yet.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

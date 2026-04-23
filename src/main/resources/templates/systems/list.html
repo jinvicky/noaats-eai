@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: page('Systems', ~{::body})}">
+<body>
+<h1>Systems <a class="btn" th:href="@{/systems/new}">+ Register system</a></h1>
+<p class="muted">연계 대상 외부/내부 시스템을 먼저 등록하고, 어댑터 생성 시 시스템 코드를 연결합니다.</p>
+
+<table>
+    <thead><tr>
+        <th>Code</th><th>Name</th><th>Type</th><th>Category</th>
+        <th>Owner</th><th>Base URL</th><th>Adapters</th><th>Active</th><th></th>
+    </tr></thead>
+    <tbody>
+    <tr th:each="s : ${systems}">
+        <td><code th:text="${s.code}">—</code></td>
+        <td><a th:href="@{|/systems/${s.id}/edit|}" th:text="${s.name}">—</a>
+            <div class="muted" th:text="${s.description}">—</div></td>
+        <td><span class="status" th:text="${s.type}">—</span></td>
+        <td th:text="${s.category}">—</td>
+        <td>
+            <span th:text="${s.owner}">—</span>
+            <div class="muted" th:text="${s.contact}">—</div>
+        </td>
+        <td><code th:text="${s.baseUrl}">—</code></td>
+        <td th:text="${adapterCounts[s.code] ?: 0}">0</td>
+        <td th:text="${s.active ? 'Yes' : 'No'}">Yes</td>
+        <td>
+            <form th:action="@{|/systems/${s.id}/delete|}" method="post" style="display:inline"
+                  onsubmit="return confirm('Delete system ' + this.dataset.code + '?')"
+                  th:data-code="${s.code}">
+                <button class="btn danger">Delete</button>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(systems)}"><td colspan="9" class="muted">등록된 시스템이 없습니다. 우측 상단에서 새 시스템을 추가하세요.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>
