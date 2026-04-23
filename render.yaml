@@ -1,5 +1,6 @@
 services:
   - type: web
     name: spring-app
-    runtime: docker
+    env: docker
     dockerfilePath: ./Dockerfile
+    plan: free
