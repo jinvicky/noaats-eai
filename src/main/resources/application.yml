@@ -25,7 +25,17 @@ spring:
   thymeleaf:
     cache: false
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: pkc-l6ojq.asia-northeast1.gcp.confluent.cloud:9092
+    security:
+      protocol: SASL_SSL
+    properties:
+      sasl:
+        mechanism: PLAIN
+        jaas:
+          config: >
+            org.apache.kafka.common.security.plain.PlainLoginModule required
+            username="${KAFKA_API_KEY}"
+            password="${KAFKA_API_SECRET}";
     consumer:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
